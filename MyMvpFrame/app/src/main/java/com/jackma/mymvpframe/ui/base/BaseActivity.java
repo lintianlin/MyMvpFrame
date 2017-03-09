@@ -24,24 +24,9 @@ import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.readystatesoftware.systembartint.SystemBarTintManager;
-import com.umeng.analytics.MobclickAgent;
-import com.yshhr.ejob_ep.R;
-import com.yshhr.ejob_ep.app.EjobApplication;
-import com.yshhr.ejob_ep.ui.adapter.SimpleHeaderRecyclerAdapter;
-import com.yshhr.ejob_ep.ui.adapter.SimpleRecyclerAdapter;
-import com.yshhr.ejob_ep.utils.CommonUtils;
-import com.yshhr.ejob_ep.utils.ToastUtils;
-import com.yshhr.ejob_ep.utils.netstatus.NetChangeObserver;
-import com.yshhr.ejob_ep.utils.netstatus.NetStateReceiver;
-import com.yshhr.ejob_ep.utils.netstatus.NetUtils;
-import com.yshhr.ejob_ep.view.base.BaseView;
-import com.yshhr.ejob_ep.widget.CustomProgressDialog;
-import com.yshhr.ejob_ep.widget.varyview.VaryViewHelperController;
 
 import java.util.ArrayList;
 
-import butterknife.ButterKnife;
 
 /**
  * BaseActivity

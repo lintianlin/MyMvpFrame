@@ -31,16 +31,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.orhanobut.logger.Logger;
-import com.yshhr.ejob_ep.R;
-import com.yshhr.ejob_ep.ui.activity.LoginActivity;
-import com.yshhr.ejob_ep.view.base.BaseView;
-import com.yshhr.ejob_ep.widget.CustomProgressDialog;
-import com.yshhr.ejob_ep.widget.varyview.VaryViewHelperController;
 
 import java.lang.reflect.Field;
-
-import butterknife.ButterKnife;
 
 
 /**
@@ -624,8 +616,6 @@ public abstract class BaseFragment extends Fragment implements BaseView {
         }
         mVaryViewHelperController.removeView(view);
     }
-
-
 
 
 }
