@@ -16,10 +16,8 @@
 
 package com.jackma.mymvpframe.ui.base;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -28,15 +26,11 @@ import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jackma.mymvpframe.ui.view.base.BaseView;
+import com.jackma.mymvpframe.widget.varyview.VaryViewHelperController;
 import com.orhanobut.logger.Logger;
-import com.yshhr.ejob_ep.R;
-import com.yshhr.ejob_ep.ui.activity.LoginActivity;
-import com.yshhr.ejob_ep.view.base.BaseView;
-import com.yshhr.ejob_ep.widget.CustomProgressDialog;
-import com.yshhr.ejob_ep.widget.varyview.VaryViewHelperController;
 
 import java.lang.reflect.Field;
 
@@ -154,32 +148,6 @@ public abstract class BaseFragment extends Fragment implements BaseView {
     public void onDestroy() {
         super.onDestroy();
 
-    }
-
-    /**
-     * ********************************** 自定义的dialog ***************************************
-     */
-    // 自定义的ProgressDialog
-    CustomProgressDialog progressDialog;
-
-    /*
-     * 自定义ProgressDialog来显示 启动
-	 */
-    public void startProgressDialog() {
-        if (progressDialog == null) {
-            progressDialog = CustomProgressDialog.createDialog(getActivity());
-        }
-        progressDialog.show();
-    }
-
-    /*
-     * 自定义ProgressDialog来显示 停止
-     */
-    public void stopProgressDialog() {
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-            progressDialog = null;
-        }
     }
 
 
@@ -310,177 +278,7 @@ public abstract class BaseFragment extends Fragment implements BaseView {
         return getActivity().getSupportFragmentManager();
     }
 
-    /**
-     * startActivity
-     *
-     * @param clazz
-     */
-    protected void startAct(Class<?> clazz) {
-        Intent intent = new Intent(getActivity(), clazz);
-        startActivity(intent);
-    }
 
-    /**
-     * startActivityThenFinish
-     *
-     * @param clazz
-     */
-    protected void startActThenFinish(Class<?> clazz) {
-        Intent intent = new Intent(getActivity(), clazz);
-        startActivity(intent);
-        getActivity().finish();
-    }
-
-    /**
-     * startActivity with bundle
-     *
-     * @param clazz
-     * @param bundle
-     */
-    protected void startActWithBundle(Class<?> clazz, Bundle bundle) {
-        Intent intent = new Intent(getActivity(), clazz);
-        if (null != bundle) {
-            intent.putExtras(bundle);
-        }
-        startActivity(intent);
-    }
-
-    /**
-     * startActivityForResult
-     *
-     * @param clazz
-     * @param requestCode
-     */
-    protected void startActForResult(Class<?> clazz, int requestCode) {
-        Intent intent = new Intent(getActivity(), clazz);
-        startActivityForResult(intent, requestCode);
-    }
-
-    /**
-     * startActivityForResult with bundle
-     *
-     * @param clazz
-     * @param requestCode
-     * @param bundle
-     */
-    protected void startActForResultWithBundle(Class<?> clazz, int requestCode, Bundle bundle) {
-        Intent intent = new Intent(getActivity(), clazz);
-        if (null != bundle) {
-            intent.putExtras(bundle);
-        }
-        startActivityForResult(intent, requestCode);
-    }
-
-
-    /**
-     * 弹出提示框
-     */
-    public static void showAlertDialog(Context context, String message) {
-        if (alertDialog == null)
-            alertDialog = new AlertDialog.Builder(context).create();
-        alertDialog.show();
-        alertDialog.setCanceledOnTouchOutside(false);
-
-        View view = LayoutInflater.from(context).inflate(R.layout.alert_dialog, null);
-        TextView title = (TextView) view.findViewById(R.id.textView_dialog_title);
-        TextView content = (TextView) view.findViewById(R.id.textView_dialog_content);
-        TextView confirm = (TextView) view.findViewById(R.id.textView_dialog_confirm);
-        title.setText("温馨提示");
-        content.setText(message);
-        alertDialog.getWindow().setContentView(view);
-
-        confirm.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if (null != alertDialog) {
-                    alertDialog.cancel();
-                }
-            }
-        });
-    }
-
-
-    /**
-     * 弹出token过期提示框
-     */
-    public static void showTokenAlertDialog(Context context, final Activity activity) {
-        String message = "您的登录信息已过期，请重新登录";
-        tokenAlertDialog = null;
-        if (tokenAlertDialog == null)
-            if (null == context) {
-                Logger.e("context====null!!!");
-            }
-        tokenAlertDialog = new AlertDialog.Builder(context).create();
-        tokenAlertDialog.show();
-        tokenAlertDialog.setCanceledOnTouchOutside(false);
-
-        View view = LayoutInflater.from(context).inflate(R.layout.alert_dialog, null);
-        TextView title = (TextView) view.findViewById(R.id.textView_dialog_title);
-        TextView content = (TextView) view.findViewById(R.id.textView_dialog_content);
-        TextView confirm = (TextView) view.findViewById(R.id.textView_dialog_confirm);
-        title.setText("温馨提示");
-        content.setText(message);
-        tokenAlertDialog.getWindow().setContentView(view);
-
-        confirm.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(activity, LoginActivity.class);
-                activity.startActivity(intent);
-                activity.finish();
-                tokenAlertDialog.cancel();
-            }
-        });
-    }
-
-    /**
-     * 未登录 弹出提示登录框
-     */
-    public static void showLoginTipsDialog(Context context, final Activity activity) {
-        String message = "您还没有登录哦!";
-        loginTipsDialog = null;
-        if (loginTipsDialog == null)
-            loginTipsDialog = new AlertDialog.Builder(context).create();
-        loginTipsDialog.show();
-        loginTipsDialog.setCanceledOnTouchOutside(false);
-
-        View view = LayoutInflater.from(context).inflate(R.layout.alert_dialog, null);
-        TextView title = (TextView) view.findViewById(R.id.textView_dialog_title);
-        TextView content = (TextView) view.findViewById(R.id.textView_dialog_content);
-        TextView confirm = (TextView) view.findViewById(R.id.textView_dialog_confirm);
-        title.setText("温馨提示");
-        content.setText(message);
-        confirm.setText("去登录");
-        loginTipsDialog.getWindow().setContentView(view);
-
-        confirm.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(activity, LoginActivity.class);
-                activity.startActivity(intent);
-                activity.finish();
-                loginTipsDialog.cancel();
-                BaseAppManager.getInstance().clear();
-            }
-        });
-    }
-
-    /**
-     * 单例吐司
-     *
-     * @param msg
-     */
-    protected void showToast(String msg) {
-
-        if (toast == null) {
-            toast = Toast.makeText(mContext, msg, Toast.LENGTH_SHORT);
-        }
-        toast.setText(msg);
-        toast.show();
-    }
 
     /**
      * 显示加载状态界面
@@ -624,8 +422,6 @@ public abstract class BaseFragment extends Fragment implements BaseView {
         }
         mVaryViewHelperController.removeView(view);
     }
-
-
 
 
 }

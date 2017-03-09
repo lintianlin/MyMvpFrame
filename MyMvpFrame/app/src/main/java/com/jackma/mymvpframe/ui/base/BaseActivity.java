@@ -1,15 +1,13 @@
 package com.jackma.mymvpframe.ui.base;
 
-import android.app.AlertDialog;
+import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -18,30 +16,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.AbsListView;
-import android.widget.ArrayAdapter;
-import android.widget.GridView;
-import android.widget.ListView;
 import android.widget.TextView;
 
+import com.jackma.mymvpframe.R;
+import com.jackma.mymvpframe.ui.view.base.BaseView;
+import com.jackma.mymvpframe.utils.ToastUtils;
+import com.jackma.mymvpframe.utils.netstatus.CommonUtils;
+import com.jackma.mymvpframe.utils.netstatus.NetChangeObserver;
+import com.jackma.mymvpframe.utils.netstatus.NetStateReceiver;
+import com.jackma.mymvpframe.utils.netstatus.NetUtils;
+import com.jackma.mymvpframe.widget.varyview.VaryViewHelperController;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
-import com.umeng.analytics.MobclickAgent;
-import com.yshhr.ejob_ep.R;
-import com.yshhr.ejob_ep.app.EjobApplication;
-import com.yshhr.ejob_ep.ui.adapter.SimpleHeaderRecyclerAdapter;
-import com.yshhr.ejob_ep.ui.adapter.SimpleRecyclerAdapter;
-import com.yshhr.ejob_ep.utils.CommonUtils;
-import com.yshhr.ejob_ep.utils.ToastUtils;
-import com.yshhr.ejob_ep.utils.netstatus.NetChangeObserver;
-import com.yshhr.ejob_ep.utils.netstatus.NetStateReceiver;
-import com.yshhr.ejob_ep.utils.netstatus.NetUtils;
-import com.yshhr.ejob_ep.view.base.BaseView;
-import com.yshhr.ejob_ep.widget.CustomProgressDialog;
-import com.yshhr.ejob_ep.widget.varyview.VaryViewHelperController;
-
-import java.util.ArrayList;
 
 import butterknife.ButterKnife;
+
 
 /**
  * BaseActivity
@@ -68,8 +56,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
     protected int mScreenHeight = 0;
     protected float mScreenDensity = 0.0f;
 
-    // 自定义的ProgressDialog
-    CustomProgressDialog progressDialog;
     /**
      * context
      */
@@ -85,15 +71,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
      */
     private VaryViewHelperController mVaryViewHelperController = null;
 
-
-    /**
-     * 切换过渡模式
-     */
-    public enum TransitionMode {
-        LEFT, RIGHT, TOP, BOTTOM, SCALE, FADE
-    }
-
-
     /**
      * toolbar上资源ID
      */
@@ -105,11 +82,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
 
     protected Toolbar mToolbar;
     private TextView mToolbar_title;
-
-    private static AlertDialog alertDialog;
-    private static AlertDialog tokenAlertDialog;
-    private static AlertDialog loginTipsDialog;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,31 +112,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
 
         if (isApplyKitKatTranslucency()) {
             setSystemBarTintDrawable(CommonUtils.getDrawable(R.drawable.sr_primary));
-        }
-        /**
-         * 打开activity时过渡动画
-         */
-        if (toggleOverridePendingTransition()) {
-            switch (getOverridePendingTransitionMode()) {
-                case LEFT:
-                    overridePendingTransition(R.anim.left_in, R.anim.left_out);
-                    break;
-                case RIGHT:
-                    overridePendingTransition(R.anim.right_in, R.anim.right_out);
-                    break;
-                case TOP:
-                    overridePendingTransition(R.anim.top_in, R.anim.top_out);
-                    break;
-                case BOTTOM:
-                    overridePendingTransition(R.anim.bottom_in, R.anim.bottom_out);
-                    break;
-                case SCALE:
-                    overridePendingTransition(R.anim.scale_in, R.anim.scale_out);
-                    break;
-                case FADE:
-                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                    break;
-            }
         }
 
         /**
@@ -254,29 +201,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
 
 
     /**
-     * ********************************** 自定义的dialog ***************************************
-     */
-    /*
-     * 自定义ProgressDialog来显示 启动
-	 */
-    public void startProgressDialog() {
-        if (progressDialog == null) {
-            progressDialog = CustomProgressDialog.createDialog(this);
-        }
-        progressDialog.show();
-    }
-
-    /*
-     * 自定义ProgressDialog来显示 停止
-     */
-    public void stopProgressDialog() {
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-            progressDialog = null;
-        }
-    }
-
-    /**
      * 是否显示toolbar
      */
     public void isShowToolbar(boolean isshow) {
@@ -305,14 +229,14 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
         this.rightTextResource = rightText;
 
         //初始化toolbar
-        initToolbar(leftIcon, titleText);
+        initToolbar();
     }
 
 
     /**
      * 初始化toolbar
      */
-    private void initToolbar(int leftIcon, final int titleText) {
+    private void initToolbar() {
 
         mToolbar = (Toolbar) findViewById(R.id.common_toolbar);
         //title
@@ -369,33 +293,8 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
     @Override
     public void finish() {
         super.finish();
-        /**
-         * 关闭activity时的过渡动画
-         */
         //关闭时将activity移除activity链表
         BaseAppManager.getInstance().removeActivity(this);
-        if (toggleOverridePendingTransition()) {
-            switch (getOverridePendingTransitionMode()) {
-                case LEFT:
-                    overridePendingTransition(R.anim.left_in, R.anim.left_out);
-                    break;
-                case RIGHT:
-                    overridePendingTransition(R.anim.right_in, R.anim.right_out);
-                    break;
-                case TOP:
-                    overridePendingTransition(R.anim.top_in, R.anim.top_out);
-                    break;
-                case BOTTOM:
-                    overridePendingTransition(R.anim.bottom_in, R.anim.bottom_out);
-                    break;
-                case SCALE:
-                    overridePendingTransition(R.anim.scale_in, R.anim.scale_out);
-                    break;
-                case FADE:
-                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                    break;
-            }
-        }
     }
 
     @Override
@@ -453,12 +352,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
      */
     protected abstract void onNetworkDisConnected();
 
-    /**
-     * is applyStatusBarTranslucency
-     *
-     * @return
-     */
-    protected abstract boolean isApplyStatusBarTranslucency();
 
     /**
      * 全屏
@@ -466,95 +359,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
      * @return
      */
     protected abstract boolean isNoTitleFullScreen();
-
-
-    /**
-     * toggle overridePendingTransition
-     *
-     * @return
-     */
-    protected abstract boolean toggleOverridePendingTransition();
-
-    /**
-     * 获得activity过渡动画模式
-     */
-    protected abstract TransitionMode getOverridePendingTransitionMode();
-
-    /**
-     * startActivity
-     *
-     * @param clazz
-     */
-    protected void startAct(Class<?> clazz) {
-        Intent intent = new Intent(this, clazz);
-        startActivity(intent);
-    }
-
-    /**
-     * startActivity with bundle
-     *
-     * @param clazz
-     * @param bundle
-     */
-    protected void startActWithBundle(Class<?> clazz, Bundle bundle) {
-        Intent intent = new Intent(this, clazz);
-        if (null != bundle) {
-            intent.putExtras(bundle);
-        }
-        startActivity(intent);
-    }
-
-    /**
-     * startActivity then finish
-     *
-     * @param clazz
-     */
-    protected void startActThenFinish(Class<?> clazz) {
-        Intent intent = new Intent(this, clazz);
-        startActivity(intent);
-        finish();
-    }
-
-    /**
-     * startActivity with bundle then finish
-     *
-     * @param clazz
-     * @param bundle
-     */
-    protected void startActWithBundleThenFinish(Class<?> clazz, Bundle bundle) {
-        Intent intent = new Intent(this, clazz);
-        if (null != bundle) {
-            intent.putExtras(bundle);
-        }
-        startActivity(intent);
-        finish();
-    }
-
-    /**
-     * startActivityForResult
-     *
-     * @param clazz
-     * @param requestCode
-     */
-    protected void startActForResult(Class<?> clazz, int requestCode) {
-        Intent intent = new Intent(this, clazz);
-        startActivityForResult(intent, requestCode);
-    }
-
-    /**
-     * startActivityForResult with bundle
-     *
-     * @param clazz
-     * @param requestCode
-     * @param bundle
-     */
-    protected void startActForResultWithBundle(Class<?> clazz, int requestCode, Bundle bundle) {
-        Intent intent = new Intent(this, clazz);
-        if (null != bundle) {
-            intent.putExtras(bundle);
-        }
-        startActivityForResult(intent, requestCode);
-    }
 
 
     /**
@@ -641,15 +445,20 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
      */
     protected void setSystemBarTintDrawable(Drawable tintDrawable) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            SystemBarTintManager mTintManager = new SystemBarTintManager(this);
-            if (tintDrawable != null) {
-                mTintManager.setStatusBarTintEnabled(true);
-                mTintManager.setTintDrawable(tintDrawable);
-            } else {
-                mTintManager.setStatusBarTintEnabled(false);
-                mTintManager.setTintDrawable(null);
-            }
+            setTranslucentStatus(true);
         }
+//        SystemBarTintManager mTintManager = new SystemBarTintManager(this);
+//        if (tintDrawable != null) {
+//            mTintManager.setStatusBarTintEnabled(true);
+//            mTintManager.setNavigationBarTintEnabled(true);
+//            mTintManager.setStatusBarTintResource(R.color.colorAccent);
+//        } else {
+//            mTintManager.setStatusBarTintEnabled(false);
+//            mTintManager.setTintDrawable(null);
+//        }
+        SystemBarTintManager tintManager = new SystemBarTintManager(this);
+        tintManager.setStatusBarTintEnabled(true);
+        tintManager.setStatusBarTintResource(R.color.colorAccent);//通知栏所需颜色
 
     }
 
@@ -659,23 +468,17 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
      *
      * @param on
      */
+    @TargetApi(19)
     protected void setTranslucentStatus(boolean on) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            Window win = getWindow();
-            WindowManager.LayoutParams winParams = win.getAttributes();
-            final int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
-            if (on) {
-                winParams.flags |= bits;
-            } else {
-                winParams.flags &= ~bits;
-            }
-            win.setAttributes(winParams);
+        Window win = getWindow();
+        WindowManager.LayoutParams winParams = win.getAttributes();
+        final int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+        if (on) {
+            winParams.flags |= bits;
+        } else {
+            winParams.flags &= ~bits;
         }
-    }
-
-
-    protected EjobApplication getBaseApplication() {
-        return (EjobApplication) getApplication();
+        win.setAttributes(winParams);
     }
 
     /**
@@ -792,96 +595,15 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
         return actionBarSize;
     }
 
-    protected int getScreenHeight() {
-        return findViewById(android.R.id.content).getHeight();
-    }
-
-    public static ArrayList<String> getDummyData() {
-        return getDummyData(NUM_OF_ITEMS);
-    }
-
-    public static ArrayList<String> getDummyData(int num) {
-        ArrayList<String> items = new ArrayList<>();
-        for (int i = 1; i <= num; i++) {
-            items.add("Item " + i);
-        }
-        return items;
-    }
-
-    protected void setDummyData(ListView listView) {
-        setDummyData(listView, NUM_OF_ITEMS);
-    }
-
-    protected void setDummyDataFew(ListView listView) {
-        setDummyData(listView, NUM_OF_ITEMS_FEW);
-    }
-
-    protected void setDummyData(ListView listView, int num) {
-        listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, getDummyData(num)));
-    }
-
-    protected void setDummyDataWithHeader(ListView listView, int headerHeight) {
-        setDummyDataWithHeader(listView, headerHeight, NUM_OF_ITEMS);
-    }
-
-    protected void setDummyDataWithHeader(ListView listView, int headerHeight, int num) {
-        View headerView = new View(this);
-        headerView.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, headerHeight));
-        headerView.setMinimumHeight(headerHeight);
-        // This is required to disable header's list selector effect
-        headerView.setClickable(true);
-        setDummyDataWithHeader(listView, headerView, num);
-    }
-
-    protected void setDummyDataWithHeader(ListView listView, View headerView, int num) {
-        listView.addHeaderView(headerView);
-        setDummyData(listView, num);
-    }
-
-    protected void setDummyData(GridView gridView) {
-        gridView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, getDummyData()));
-    }
-
-    protected void setDummyData(RecyclerView recyclerView) {
-        setDummyData(recyclerView, NUM_OF_ITEMS);
-    }
-
-    protected void setDummyDataFew(RecyclerView recyclerView) {
-        setDummyData(recyclerView, NUM_OF_ITEMS_FEW);
-    }
-
-    protected void setDummyData(RecyclerView recyclerView, int num) {
-        recyclerView.setAdapter(new SimpleRecyclerAdapter(this, getDummyData(num)));
-    }
-
-    protected void setDummyDataWithHeader(RecyclerView recyclerView, int headerHeight) {
-        View headerView = new View(this);
-        headerView.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, headerHeight));
-        headerView.setMinimumHeight(headerHeight);
-        // This is required to disable header's list selector effect
-        headerView.setClickable(true);
-        setDummyDataWithHeader(recyclerView, headerView);
-    }
-
-    protected void setDummyDataWithHeader(RecyclerView recyclerView, View headerView) {
-        recyclerView.setAdapter(new SimpleHeaderRecyclerAdapter(this, getDummyData(), headerView));
-    }
-
 
     @Override
     protected void onResume() {
         super.onResume();
-        MobclickAgent.onPageStart("BaseActivity");
-        //友盟统计
-        MobclickAgent.onResume(this);       //统计时长
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        MobclickAgent.onPageEnd("BaseActivity");
-        //友盟统计
-        MobclickAgent.onPause(this);
     }
 
 }
